@@ -2,7 +2,9 @@
 
 #include "Base.h"
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include "Core/Core.h"
 #include "Core/Events/Event.h"
 
@@ -28,7 +30,8 @@ namespace GLMV {
         public:
             using EventCallbackFn = std::function<void(Event&)>;
 
-            ~Window() = default;
+            Window(const WindowProps &props);
+            ~Window();
 
             void OnUpdate();
 
@@ -42,7 +45,7 @@ namespace GLMV {
 
             void* GetNativeWindow() const { return m_Window; }
 
-            static Window* Create(const WindowProps& props = WindowProps());
+            static Scope<Window> Create(const WindowProps& props = WindowProps());
 
         private:
             void Init(const WindowProps& props);

@@ -4,8 +4,9 @@
 
 #include "Core/Log.h"
 #include "Core/Input.h"
+#include "Core/Renderer/Renderer.h"
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 namespace GLMV {
     Application* Application::s_Instance = nullptr;
@@ -15,18 +16,16 @@ namespace GLMV {
         GLMV_ASSERT(!s_Instance, "Application already exists!");
         s_Instance = this;
 
-        m_Window = std::unique_ptr<Window>(Window::Create({ name, width, height }));
+        m_Window = Window::Create({ name, width, height });
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         Renderer::Init();
 
-        m_UILayer = new UILayer();
-        m_SceneLayer = new Scene();
+        m_UILayer = new UI();
     }
 
     Application::~Application()
     {
-        delete m_SceneLayer;
         delete m_UILayer;
 
         Renderer::Shutdown();
@@ -35,13 +34,10 @@ namespace GLMV {
     void Application::OnEvent(Event& e)
     {
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
+        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
+        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
         m_UILayer->OnEvent(e);
-        if (e.Handled)
-            return;
-
-        m_SceneLayer->OnEvent(e);
     }
 
     void Application::Run()
@@ -54,7 +50,6 @@ namespace GLMV {
 
             if (!m_Minimized)
             {
-                m_SceneLayer->OnUpdate(timestep);
                 m_UILayer->Render(timestep);
             }
 
@@ -64,10 +59,9 @@ namespace GLMV {
 
     bool Application::OnWindowClose(WindowCloseEvent& e)
     {
-        m_Running = false;
+        Close();
         return true;
     }
-
 
     bool Application::OnWindowResize(WindowResizeEvent& e)
     {

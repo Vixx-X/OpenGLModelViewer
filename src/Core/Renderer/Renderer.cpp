@@ -4,40 +4,49 @@
 
 namespace GLMV {
 
-    static void Renderer::Init()
+    Scope<Renderer::SceneData> Renderer::s_SceneData = CreateScope<Renderer::SceneData>();
+
+    void Renderer::Init()
     {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
-
-    void Renderer::BeginScene(OrthographicCamera& camera)
+    void Renderer::Shutdown()
     {
-        s_SceneData->ViewProjectionMatrix = camera.GetViewProjectionMatrix();
+    }
+
+    void Renderer::BeginScene(Camera& camera)
+    {
+        s_SceneData->ViewProjectionMatrix = camera.GetViewProjection();
     }
 
     void Renderer::EndScene()
     {
     }
 
-    void Renderer::Submit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, const glm::mat4& transform)
+    void Renderer::DrawMesh(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, const glm::mat4& transform)
     {
         shader->Bind();
-        std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
-        std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_Transform", transform);
+        shader->UploadUniformMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
+        shader->UploadUniformMat4("u_Transform", transform);
 
         vertexArray->Bind();
         glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
     }
 
-
-    static void Renderer::SetClearColor(const glm::vec4& color)
+    void Renderer::SetClearColor(const glm::vec4& color)
     {
         glClearColor(color.r, color.g, color.b, color.a);
     }
 
-    static void OpenGLRendererAPI::Clear()
+    void Renderer::Clear()
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
+    void Renderer::OnWindowResize(uint32_t width, uint32_t height)
+    {
+        glViewport(0, 0, width, height);
     }
 }

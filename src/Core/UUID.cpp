@@ -1,3 +1,5 @@
+#include "Base.h"
+
 #include "UUID.h"
 
 #include <random>

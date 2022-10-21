@@ -41,7 +41,7 @@ namespace GLMV {
     std::string Shader::ReadFile(const std::string& filepath)
     {
         std::string result;
-        std::ifstream in(filepath, std::ios::in, std::ios::binary);
+        std::ifstream in(filepath, std::ios::in | std::ios::binary);
         if (in)
         {
             in.seekg(0, std::ios::end);
@@ -52,7 +52,7 @@ namespace GLMV {
         }
         else
         {
-            GLMV_ERROR("Could not open file '%s'", filepath);
+            LOG_ERROR("Could not open file '%s'", filepath);
         }
 
         return result;
@@ -109,7 +109,7 @@ namespace GLMV {
 
                 glDeleteShader(shader);
 
-                GLMV_ERROR("%s", infoLog.data());
+                LOG_ERROR("%s", infoLog.data());
                 GLMV_ASSERT(false, "Shader compilation failure!");
                 break;
             }
@@ -141,7 +141,7 @@ namespace GLMV {
             for (auto id : glShaderIDs)
                 glDeleteShader(id);
 
-            GLMV_ERROR("%s", infoLog.data());
+            LOG_ERROR("%s", infoLog.data());
             GLMV_ASSERT(false, "Shader link failure!");
             return;
         }

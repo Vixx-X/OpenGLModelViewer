@@ -105,7 +105,7 @@ namespace GLMV {
     {
         public:
             VertexBuffer(float* vertices, uint32_t size);
-            virtual ~VertexBuffer() = default;
+            virtual ~VertexBuffer();
 
             virtual void Bind() const;
             virtual void Unbind() const;
@@ -113,7 +113,7 @@ namespace GLMV {
             virtual const BufferLayout& GetLayout() const { return m_Layout; }
             virtual void SetLayout(const BufferLayout& layout) { m_Layout = layout; }
 
-            static VertexBuffer* Create(float* vertices, uint32_t size) { return VertexBuffer(vertices, size); }
+            static VertexBuffer* Create(float* vertices, uint32_t size) { return new VertexBuffer(vertices, size); }
 
         private:
             uint32_t m_RendererID;
@@ -124,14 +124,14 @@ namespace GLMV {
     {
         public:
             IndexBuffer(uint32_t* indices, uint32_t count);
-            virtual ~IndexBuffer() = default;
+            virtual ~IndexBuffer();
 
             virtual void Bind() const;
             virtual void Unbind() const;
 
             virtual uint32_t GetCount() const { return m_Count; }
 
-            static IndexBuffer* Create(uint32_t* indices, uint32_t size) { return IndexBuffer(indices, size); }
+            static IndexBuffer* Create(uint32_t* indices, uint32_t size) { return new IndexBuffer(indices, size); }
 
         private:
             uint32_t m_RendererID;

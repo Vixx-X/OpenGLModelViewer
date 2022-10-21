@@ -2,7 +2,7 @@
 
 #include "Core/Input.h"
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -57,17 +57,17 @@ namespace GLMV {
 
     void Camera::OnUpdate(Timestep ts)
     {
-        if (Input::IsKeyPressed(Key::LeftAlt))
+        if (Input::IsKeyPressed(342)) // left alt
         {
             const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
             glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
             m_InitialMousePosition = mouse;
 
-            if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
+            if (Input::IsMouseButtonPressed(2)) // middle
                 MousePan(delta);
-            else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+            else if (Input::IsMouseButtonPressed(0)) // left
                 MouseRotate(delta);
-            else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
+            else if (Input::IsMouseButtonPressed(1)) // rigth
                 MouseZoom(delta.y);
         }
 
@@ -77,7 +77,7 @@ namespace GLMV {
     void Camera::OnEvent(Event& e)
     {
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<MouseScrolledEvent>(GLMV_BIND_EVENT_FN(Camera::OnMouseScroll));
+        dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(Camera::OnMouseScroll));
     }
 
     bool Camera::OnMouseScroll(MouseScrolledEvent& e)

@@ -27,17 +27,19 @@ project "OpenGLModelViewer"
         "src",
         "vendor/glad/include",
         "vendor/glfw/include",
-        "vendor/glm/",
+        "vendor/glm",
         "vendor/imgui",
         "vendor/imgui/backends",
+        "vendor/imgui/examples",
         "vendor/ImGuizmo",
-        "vendor/entt/src/entt/",
-        "vendor/tinyfiledialogs"
+        "vendor/entt/src/entt",
+        "vendor/libtinyfiledialogs",
+        "vendor/yaml-cpp/include"
     }
 
     files { "src/**.cpp", "src/**.h" }
 
-    links { "GLAD", "GLFW", "GLM", "ImGui", "ImGuizmo", "entt", "tinyfiledialogs" }
+    links { "GLAD", "GLFW", "GLM", "ImGui", "ImGuizmo", "entt", "tinyfiledialogs", "yaml-cpp" }
 
     filter "system:linux"
         links { "dl", "pthread" }
@@ -57,4 +59,5 @@ include "vendor/imgui.lua"
 include "vendor/imguizmo.lua"
 include "vendor/entt.lua"
 include "vendor/tinyfiledialogs.lua"
+include "vendor/yaml-cpp.lua"
 

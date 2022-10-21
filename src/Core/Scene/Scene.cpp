@@ -11,12 +11,12 @@ namespace GLMV {
 
     Scene::Scene()
     {
+        m_shader = Shader::Create("assets/shaders/Mesh.glsl");
     }
 
     Scene::~Scene()
     {
     }
-
 
     Entity Scene::CreateEntity()
     {
@@ -38,14 +38,19 @@ namespace GLMV {
 
     void Scene::OnUpdate(Timestep ts, Camera& camera)
     {
+        camera.OnUpdate(ts);
+
+        /* Renderer::SetClearColor({}); */
+        Renderer::Clear();
+
         Renderer::BeginScene(camera);
 
-        auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+        auto group = m_Registry.group<TransformComponent, MeshComponent, MaterialComponent>();
         for (auto entity : group)
         {
             auto [transform, mesh, material] = group.get<TransformComponent, MeshComponent, MaterialComponent>(entity);
 
-            Renderer::DrawMesh(transform.GetTransform(), mesh.GetMesh(), material.Color);
+            Renderer::DrawMesh(m_shader, mesh.GetMesh(), transform.GetTransform());
         }
 
         Renderer::EndScene();

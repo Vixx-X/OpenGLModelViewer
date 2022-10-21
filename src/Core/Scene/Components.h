@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/UUID.h"
+#include "Core/Renderer/VertexArray.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -41,14 +42,14 @@ namespace GLMV {
 
     struct MeshComponent
     {
-        Ref<Mesh> Mesh;
+        Ref<VertexArray> Mesh;
 
         MeshComponent() = default;
         MeshComponent(const MeshComponent&) = default;
-        MeshComponent(const Mesh& Mesh)
-            : Mesh(Mesh) {}
+        MeshComponent(const Ref<VertexArray>& mesh)
+            : Mesh(mesh) {}
 
-        Mesh& GetMesh() const
+        Ref<VertexArray> GetMesh() const
         {
             return Mesh;
         }

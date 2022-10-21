@@ -145,14 +145,6 @@ namespace GLMV {
             out << YAML::Key << "Camera";
             out << YAML::BeginMap; // Camera
 
-            auto& cameraComponent = entity.GetComponent<CameraComponent>();
-            auto& camera = cameraComponent.Camera;
-
-            out << YAML::Key << "Camera" << YAML::Value;
-            out << YAML::BeginMap; // Camera
-            out << YAML::Key << "ProjectionType" << YAML::Value << (int)camera.GetProjectionType();
-            out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.GetPerspectiveVerticalFOV();
-            out << YAML::EndMap; // Camera
 
             out << YAML::EndMap; // Camera
         }
@@ -185,7 +177,7 @@ namespace GLMV {
         }
         catch (YAML::ParserException e)
         {
-            GLMV_ERROR("Failed to load .glmv file '%s'\n", filepath);
+            LOG_ERROR("Failed to load .glmv file '%s'\n", filepath);
             return false;
         }
 
@@ -196,7 +188,7 @@ namespace GLMV {
             {
                 uint64_t uuid = entity["Entity"].as<uint64_t>();
 
-                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid, name);
+                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid);
 
                 auto transformComponent = entity["TransformComponent"];
                 if (transformComponent)

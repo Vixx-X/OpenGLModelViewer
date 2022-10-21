@@ -11,18 +11,20 @@
 
 namespace GLMV {
 
-    class UILayer
+    class UI
     {
         public:
-            UILayer();
-            ~UILayer();
+            UI();
+            ~UI();
 
             void Render(Timestep timestep);
             void OnEvent(Event& e);
 
+            Camera& GetCamera() { return m_Camera; }
+
         private:
-            bool OnKeyPressed(KeyPressedEvent& e);
-            bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+            /* bool OnKeyPressed(KeyPressedEvent& e); */
+            /* bool OnMouseButtonPressed(MouseButtonPressedEvent& e); */
 
             void NewScene();
             void OpenScene();
@@ -32,13 +34,14 @@ namespace GLMV {
 
             void SerializeScene(Ref<Scene> scene, const std::filesystem::path& path);
 
-            // UI Panels
+            /* // UI Panels */
+            void UI_Menu();
             void UI_Toolbar();
         private:
             Ref<Scene> m_ActiveScene;
 
-            Entity m_HoveredEntity;
-            Camera m_EditorCamera;
+            Ref<Entity> m_HoveredEntity;
+            Camera m_Camera;
 
             bool m_ViewportFocused = false, m_ViewportHovered = false;
             glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
@@ -49,6 +52,8 @@ namespace GLMV {
             bool m_ShowNormals = false;
             bool m_ShowVertex = false;
             bool m_ShowOnlyFrame = false;
+
+            std::filesystem::path m_CurrentScenePath;
     };
 }
 

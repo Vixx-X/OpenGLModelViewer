@@ -7,15 +7,15 @@ typedef unsigned int GLenum;
 
 namespace GLMV {
 
-    class Shader : public Shader
+    class Shader
     {
         public:
             Shader(const std::string& filepath);
             Shader(const std::string& vertexSrc, const std::string& fragmentSrc);
             virtual ~Shader();
 
-            static Shader* Create(const std::string& filepath) { return new Shader(filepath); }
-            static Shader* Create(const std::string& vertexSrc, const std::string& fragmentSrc) { return new Shader(vertexSrc, fragmentSrc); }
+            static Ref<Shader> Create(const std::string& filepath) { return CreateRef<Shader>(filepath); }
+            static Ref<Shader> Create(const std::string& vertexSrc, const std::string& fragmentSrc) { return CreateRef<Shader>(vertexSrc, fragmentSrc); }
 
             virtual void Bind() const;
             virtual void Unbind() const;

@@ -22,14 +22,14 @@ namespace GLMV {
             inline Window& GetWindow() { return *m_Window; }
 
             inline static Application& Get() { return *s_Instance; }
+            void Close() { m_Running = false; }
 
         private:
             bool OnWindowClose(WindowCloseEvent& e);
             bool OnWindowResize(WindowResizeEvent& e);
 
-            std::unique_ptr<Window> m_Window;
-            UILayer* m_UILayer;
-            Scene* m_SceneLayer;
+            Scope<Window> m_Window;
+            UI* m_UILayer;
             bool m_Running = true;
             bool m_Minimized = false;
             float m_LastFrameTime = 0.0f;

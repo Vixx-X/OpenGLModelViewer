@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base.h"
+#include "Buffer.h"
 
 namespace GLMV {
 
@@ -13,13 +14,13 @@ namespace GLMV {
             virtual void Bind() const;
             virtual void Unbind() const;
 
-            virtual void AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer);
-            virtual void SetIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer);
+            virtual void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer);
+            virtual void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer);
 
             virtual const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const { return m_VertexBuffers; }
             virtual const Ref<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
 
-            static VertexArray* Create() { return VertexArray() }
+            static VertexArray* Create() { return new VertexArray(); }
 
         private:
             uint32_t m_RendererID;

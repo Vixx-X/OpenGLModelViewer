@@ -4,9 +4,6 @@
 #include "Core/Events/MouseEvent.h"
 #include "Core/Events/KeyEvent.h"
 
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
-
 namespace GLMV {
 
     static bool s_GLFWInitialized = false;
@@ -16,12 +13,12 @@ namespace GLMV {
         LOG_ERROR("GLFW Error (%d): %s", error, description);
     }
 
-    Window* Window::Create(const WindowProps& props)
+    Scope<Window> Window::Create(const WindowProps& props)
     {
-        return new Windows(props);
+        return CreateScope<Window>(props);
     }
 
-    Windows::Window(const WindowProps& props)
+    Window::Window(const WindowProps& props)
     {
         Init(props);
     }
@@ -164,7 +161,7 @@ namespace GLMV {
 
     void Window::SetVSync(bool enabled)
     {
-        glfwSwapInterval(enabled);
+        glfwSwapInterval(enabled ? 1 : 0);
         m_Data.VSync = enabled;
     }
 

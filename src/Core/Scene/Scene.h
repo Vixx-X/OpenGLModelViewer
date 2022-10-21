@@ -2,6 +2,7 @@
 
 #include "Core/Timestep.h"
 #include "Core/Renderer/Camera.h"
+#include "Core/Renderer/Shader.h"
 #include "Core/UUID.h"
 
 #include "entt.hpp"
@@ -25,6 +26,7 @@ namespace GLMV {
         private:
             entt::registry m_Registry;
             uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+            Ref<Shader> m_shader;
 
             friend class Entity;
             friend class SceneSerializer;
