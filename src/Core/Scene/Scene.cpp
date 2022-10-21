@@ -38,11 +38,6 @@ namespace GLMV {
 
     void Scene::OnUpdate(Timestep ts, Camera& camera)
     {
-        camera.OnUpdate(ts);
-
-        /* Renderer::SetClearColor({}); */
-        Renderer::Clear();
-
         Renderer::BeginScene(camera);
 
         auto group = m_Registry.group<TransformComponent, MeshComponent, MaterialComponent>();
