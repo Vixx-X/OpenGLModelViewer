@@ -23,6 +23,7 @@ namespace GLMV {
             static EventType GetStaticType() { return EventType::MouseMoved; }
             virtual EventType GetEventType() const override { return GetStaticType(); }
             virtual const char* GetName() const override { return "MouseMoved"; }
+            virtual int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryInput; }
         private:
             float m_MouseX, m_MouseY;
     };
@@ -46,6 +47,7 @@ namespace GLMV {
             static EventType GetStaticType() { return EventType::MouseScrolled; }
             virtual EventType GetEventType() const override { return GetStaticType(); }
             virtual const char* GetName() const override { return "MouseScrolled"; }
+            virtual int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryInput; }
         private:
             float m_XOffset, m_YOffset;
     };
@@ -54,6 +56,7 @@ namespace GLMV {
     {
         public:
             inline int GetMouseButton() const { return m_Button; }
+            virtual int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryInput | EventCategoryMouseButton; }
 
         protected:
             MouseButtonEvent(int button)

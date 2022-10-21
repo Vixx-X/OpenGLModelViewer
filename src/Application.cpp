@@ -21,12 +21,14 @@ namespace GLMV {
 
         Renderer::Init();
 
-        m_UILayer = new UI();
+        m_ImGuiUI = new ImGuiUI();
+        m_SceneUI = new SceneUI();
     }
 
     Application::~Application()
     {
-        delete m_UILayer;
+        delete m_SceneUI;
+        delete m_ImGuiUI;
 
         Renderer::Shutdown();
     }
@@ -37,7 +39,12 @@ namespace GLMV {
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
-        m_UILayer->OnEvent(e);
+        m_ImGuiUI->OnEvent(e);
+
+        if (e.Handled)
+            return;
+
+        m_SceneUI->OnEvent(e);
     }
 
     void Application::Run()
@@ -50,7 +57,13 @@ namespace GLMV {
 
             if (!m_Minimized)
             {
-                m_UILayer->Render(timestep);
+                m_SceneUI->OnUpdate(timestep);
+                m_ImGuiUI->OnUpdate(timestep);
+
+                m_ImGuiUI->Begin();
+                m_SceneUI->Render();
+                m_ImGuiUI->Render();
+                m_ImGuiUI->End();
             }
 
             m_Window->OnUpdate();

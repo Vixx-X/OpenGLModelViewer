@@ -23,6 +23,7 @@ namespace GLMV {
             static EventType GetStaticType() { return EventType::WindowResize; }
             virtual EventType GetEventType() const override { return GetStaticType(); }
             virtual const char* GetName() const override { return "WindowResize"; }
+            virtual int GetCategoryFlags() const override { return EventCategoryApplication; }
         private:
                 uint32_t m_Width, m_Height;
     };
@@ -35,6 +36,7 @@ namespace GLMV {
             static EventType GetStaticType() { return EventType::WindowClose; }
             virtual EventType GetEventType() const override { return GetStaticType(); }
             virtual const char* GetName() const override { return "WindowClose"; }
+            virtual int GetCategoryFlags() const override { return EventCategoryApplication; }
     };
 
     class AppTickEvent : public Event
@@ -45,6 +47,7 @@ namespace GLMV {
             static EventType GetStaticType() { return EventType::AppTick; }
             virtual EventType GetEventType() const override { return GetStaticType(); }
             virtual const char* GetName() const override { return "AppTick"; }
+            virtual int GetCategoryFlags() const override { return EventCategoryApplication; }
     };
 
     class AppUpdateEvent : public Event
@@ -55,6 +58,7 @@ namespace GLMV {
             static EventType GetStaticType() { return EventType::AppUpdate; }
             virtual EventType GetEventType() const override { return GetStaticType(); }
             virtual const char* GetName() const override { return "AppUpdate"; }
+            virtual int GetCategoryFlags() const override { return EventCategoryApplication; }
     };
 
     class AppRenderEvent : public Event
@@ -65,5 +69,6 @@ namespace GLMV {
             static EventType GetStaticType() { return EventType::AppRender; }
             virtual EventType GetEventType() const override { return GetStaticType(); }
             virtual const char* GetName() const override { return "AppRender"; }
+            virtual int GetCategoryFlags() const override { return EventCategoryApplication; }
     };
 }

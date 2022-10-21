@@ -5,7 +5,8 @@
 #include "Core/Window.h"
 #include "Core/Scene/Scene.h"
 
-#include "UI/UI.h"
+#include "UI/ImGuiUI.h"
+#include "UI/SceneUI.h"
 
 namespace GLMV {
 
@@ -20,6 +21,7 @@ namespace GLMV {
             void OnEvent(Event& e);
 
             inline Window& GetWindow() { return *m_Window; }
+            inline ImGuiUI* GetImGuiUI() { return m_ImGuiUI; }
 
             inline static Application& Get() { return *s_Instance; }
             void Close() { m_Running = false; }
@@ -29,7 +31,8 @@ namespace GLMV {
             bool OnWindowResize(WindowResizeEvent& e);
 
             Scope<Window> m_Window;
-            UI* m_UILayer;
+            ImGuiUI* m_ImGuiUI;
+            SceneUI* m_SceneUI;
             bool m_Running = true;
             bool m_Minimized = false;
             float m_LastFrameTime = 0.0f;

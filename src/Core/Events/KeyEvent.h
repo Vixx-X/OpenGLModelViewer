@@ -8,7 +8,7 @@ namespace GLMV {
     {
         public:
             inline int GetKeyCode() const { return m_KeyCode; }
-
+            virtual int GetCategoryFlags() const override { return EventCategoryKeyboard | EventCategoryInput; }
         protected:
             KeyEvent(int keycode)
                 : m_KeyCode(keycode) {}
