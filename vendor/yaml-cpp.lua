@@ -1,10 +1,16 @@
-
 project "yaml-cpp"
-    kind "StaticLib"
-    language "C++"
+	kind "StaticLib"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "On"
+    architecture "x86_64"
 
     targetdir "../bin/%{cfg.buildcfg}"
     objdir "../obj/%{cfg.buildcfg}"
+
+    defines {
+        "YAML_CPP_STATIC_DEFINE"
+    }
 
     files
     {
@@ -19,21 +25,13 @@ project "yaml-cpp"
         "yaml-cpp/include"
     }
 
-    filter "system:windows"
-        systemversion "latest"
-        cppdialect "C++17"
-        staticruntime "On"
+	filter "system:windows"
+		systemversion "latest"
 
-    filter "system:linux"
-        pic "On"
-        systemversion "latest"
-        cppdialect "C++17"
-        staticruntime "On"
+	filter "configurations:Debug"
+		runtime "Debug"
+		symbols "on"
 
-    filter "configurations:Debug"
-        runtime "Debug"
-        symbols "on"
-
-    filter "configurations:Release"
-        runtime "Release"
-        optimize "on"
+	filter "configurations:Release"
+		runtime "Release"
+		optimize "on"

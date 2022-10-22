@@ -42,3 +42,7 @@ Makefile
 vendor/Makefile
 OpenGLPaint.make
 **/*.make
+
+**/*.vcx*
+**/*.sln
+.vs
