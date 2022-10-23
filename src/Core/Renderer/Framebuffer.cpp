@@ -194,7 +194,7 @@ namespace GLMV {
     {
         if (width == 0 || height == 0 || width > s_MaxFramebufferSize || height > s_MaxFramebufferSize)
         {
-            LOG_WARN("Attempted to rezize framebuffer to {%d}, {%d}", width, height);
+            LOG_WARN("Attempted to rezize framebuffer to %d, %d", width, height);
             return;
         }
         m_Specification.Width = width;
@@ -210,6 +210,7 @@ namespace GLMV {
         glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
         int pixelData;
         glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
+
         return pixelData;
     }
 

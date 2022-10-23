@@ -208,7 +208,7 @@ namespace GLMV {
             auto it = s_MTLMap.find(meshNode->Material_);
             if (it != s_MTLMap.end())
             {
-                entity.AddComponent<MaterialComponent>(glm::vec4(it->second->Diffuse, 0), it->second->Name);
+                entity.AddComponent<MaterialComponent>(glm::vec4(it->second->Diffuse, 1), it->second->Name);
             }
             else
             {
