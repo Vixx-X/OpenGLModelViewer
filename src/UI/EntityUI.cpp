@@ -5,8 +5,12 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Core/Scene/Components.h"
+#include <tinyfiledialogs.h>
+#include "Core/Loaders/Obj.h"
 
 namespace GLMV {
+
+    static char const* lFilterPatterns[1] = { "*.obj" };
 
     EntityUI::EntityUI(const Ref<Scene>& context)
     {
@@ -23,22 +27,27 @@ namespace GLMV {
     {
         ImGui::Begin("Scene Entities");
 
-        m_Context->m_Registry.each([&](auto entityID)
+
+        if (m_Context)
         {
-            Entity entity{ entityID , m_Context.get() };
-            DrawEntity(entity);
-        });
+            m_Context->m_Registry.each([&](auto entityID)
+                {
+                    Entity entity{ entityID , m_Context.get() };
+                    DrawEntity(entity);
+                });
 
-        if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-            m_SelectionContext = {};
+            if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+                m_SelectionContext = {};
 
-        // Right-click on blank space
-        if (ImGui::BeginPopupContextWindow())
-        {
-            if (ImGui::MenuItem("Create Empty Entity"))
-                m_Context->CreateEntity();
+            // Right-click on blank space
+            if (ImGui::BeginPopupContextWindow(0, 1))
+            {
+                if (ImGui::MenuItem("Add Entity"))
+                    ImportMesh();
 
-            ImGui::EndPopup();
+                ImGui::EndPopup();
+            }
+
         }
 
         ImGui::End();
@@ -59,33 +68,18 @@ namespace GLMV {
 
     void EntityUI::DrawEntity(Entity entity)
     {
-        auto tag = std::to_string(entity.GetComponent<IDComponent>().ID);
+        auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-        ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-        flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-        bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
-        if (ImGui::IsItemClicked())
-        {
-            m_SelectionContext = entity;
-        }
+        std::string uuid = std::to_string(entity.GetUUID());
 
         bool entityDeleted = false;
-        if (ImGui::BeginPopupContextItem())
-        {
-            if (ImGui::MenuItem("Delete Entity"))
-                entityDeleted = true;
 
-            ImGui::EndPopup();
-        }
+        if (ImGui::Selectable((tag + "##" + uuid).c_str(), ImGuiSelectableFlags_AllowDoubleClick))
+            m_SelectionContext = entity;
 
-        if (opened)
-        {
-            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-            bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
-            if (opened)
-                ImGui::TreePop();
-            ImGui::TreePop();
-        }
+
+        if (ImGui::Button(("Delete##" + uuid).c_str()))
+            entityDeleted = true;
 
         if (entityDeleted)
         {
@@ -97,6 +91,20 @@ namespace GLMV {
 
     void EntityUI::DrawComponents(Entity entity)
     {
+        if (entity.HasComponent<TagComponent>())
+        {
+            auto& tag = entity.GetComponent<TagComponent>().Tag;
+
+            char buffer[256];
+            memset(buffer, 0, sizeof(buffer));
+            std::strncpy(buffer, tag.c_str(), sizeof(buffer));
+            if (ImGui::InputText("Name##Tag", buffer, sizeof(buffer)))
+            {
+                tag = std::string(buffer);
+            }
+        }
+
+        if (entity.HasComponent<TransformComponent>())
         {
             auto& component = entity.GetComponent<TransformComponent>();
             ImGui::InputFloat3("Translation", glm::value_ptr(component.Rotation));
@@ -106,9 +114,35 @@ namespace GLMV {
             ImGui::InputFloat3("Scale", glm::value_ptr(component.Scale));
         }
 
+        if (entity.HasComponent<MaterialComponent>())
         {
             auto& component = entity.GetComponent<MaterialComponent>();
-            ImGui::ColorPicker3("Color", glm::value_ptr(component.Color));
+            auto& tag = component.Name;
+
+            char buffer[256];
+            memset(buffer, 0, sizeof(buffer));
+            std::strncpy(buffer, tag.c_str(), sizeof(buffer));
+            if (ImGui::InputText("Material Name##Material Tag", buffer, sizeof(buffer)))
+            {
+                tag = std::string(buffer);
+            }
+            ImGui::ColorEdit3("Color", glm::value_ptr(component.Color));
         }
+    }
+    void EntityUI::ImportMesh()
+    {
+        auto filepath = tinyfd_openFileDialog(
+            "Load mesh...",
+            NULL,
+            1,
+            lFilterPatterns,
+            NULL,
+            false
+        );
+
+        if (!filepath)
+            return;
+
+        ObjLoader::Load(std::string(filepath), m_Context);
     }
 }

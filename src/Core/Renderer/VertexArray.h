@@ -20,7 +20,7 @@ namespace GLMV {
             virtual const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const { return m_VertexBuffers; }
             virtual const Ref<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
 
-            static VertexArray* Create() { return new VertexArray(); }
+            static Ref<VertexArray> Create() { return CreateRef<VertexArray>(); }
 
         private:
             uint32_t m_RendererID;

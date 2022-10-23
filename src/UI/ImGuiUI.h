@@ -15,6 +15,7 @@ namespace GLMV {
             ~ImGuiUI();
 
             virtual void OnEvent(Event& e) override;
+            virtual void Render() override;
 
             void Begin();
             void End();

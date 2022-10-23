@@ -44,6 +44,8 @@ namespace GLMV {
             void UI_Toolbar();
             void UI_Stats();
 
+            void UI_Gizmo();
+
         private:
             Ref<Framebuffer> m_Framebuffer;
             Ref<Scene> m_ActiveScene;
@@ -52,14 +54,27 @@ namespace GLMV {
             Camera m_Camera;
 
             bool m_ViewportFocused = false, m_ViewportHovered = false;
+ 
+            glm::vec4 m_BgColor = { 0.3f, 0.4f, 0.5f, 1.0f };
+            glm::vec4 m_WireColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+            glm::vec4 m_VertexColor = { 1.0f, 0.0f, 0.0f, 1.0f };
+            glm::vec4 m_NormalsColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+            glm::vec4 m_BoundingBoxColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+            
             glm::vec2 m_ViewportSize = { 0.0f, 0.0f };
             glm::vec2 m_ViewportBounds[2];
 
             int m_GizmoType = -1;
 
+            bool m_Zbuffer = true;
+            bool m_Multisample = true;
+            bool m_BackfaceCulling = true;
+
+            bool m_ShowBoundingBox = false;
+            bool m_ShowWireFrame = false;
             bool m_ShowNormals = false;
             bool m_ShowVertex = false;
-            bool m_ShowOnlyFrame = false;
+            bool m_Fill = true;
 
             std::filesystem::path m_CurrentScenePath;
 

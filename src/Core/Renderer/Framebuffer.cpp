@@ -211,7 +211,6 @@ namespace GLMV {
         int pixelData;
         glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
         return pixelData;
-
     }
 
     void Framebuffer::ClearAttachment(uint32_t attachmentIndex, int value)

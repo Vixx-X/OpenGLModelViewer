@@ -11,25 +11,33 @@ namespace GLMV {
 
     Scene::Scene()
     {
-        m_shader = Shader::Create("assets/shaders/Mesh.glsl");
     }
 
     Scene::~Scene()
     {
     }
 
-    Entity Scene::CreateEntity()
+    Entity Scene::CreateEntity(std::string& name)
     {
-        return CreateEntityWithUUID(UUID());
+        return CreateEntityWithUUID(name, UUID());
     }
 
-    Entity Scene::CreateEntityWithUUID(UUID uuid)
+    Entity Scene::CreateEntityWithUUID(std::string& name, UUID uuid, UUID guid)
     {
         Entity entity = { m_Registry.create(), this };
-        entity.AddComponent<IDComponent>(uuid);
+        entity.AddComponent<IDComponent>(uuid, guid);
         entity.AddComponent<TransformComponent>();
+        auto& tag = entity.AddComponent<TagComponent>();
+        tag.Tag = name.empty() ? "Unnamed Entity" : name;
         return entity;
     }
+
+    Entity Scene::CreateEntityWithGroupUUID(std::string& name, UUID uuid)
+    {
+        Entity entity = CreateEntityWithUUID(name, UUID(), uuid);
+        return entity;
+    }
+
 
     void Scene::DestroyEntity(Entity entity)
     {
@@ -40,17 +48,16 @@ namespace GLMV {
     {
         Renderer::BeginScene(camera);
 
-        auto group = m_Registry.group<TransformComponent, MeshComponent, MaterialComponent>();
+        auto group = m_Registry.group<TagComponent, TransformComponent, MeshComponent, MaterialComponent>();
         for (auto entity : group)
         {
-            auto [transform, mesh, material] = group.get<TransformComponent, MeshComponent, MaterialComponent>(entity);
+            auto [tag, transform, mesh, material] = group.get<TagComponent, TransformComponent, MeshComponent, MaterialComponent>(entity);
 
-            Renderer::DrawMesh(m_shader, mesh.GetMesh(), transform.GetTransform());
+            Renderer::DrawMesh(mesh.GetMesh(), transform.GetTransform(), material.Color, (uint32_t)entity);
         }
 
         Renderer::EndScene();
     }
-
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)
     {

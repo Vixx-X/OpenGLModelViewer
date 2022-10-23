@@ -1,6 +1,7 @@
 #include "Base.h"
 #include "ImGuiUI.h"
 
+#define IMGUI_IMPL_OPENGL_LOADER_GLAD
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -77,5 +78,11 @@ namespace GLMV {
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
         }
+    }
+
+    void ImGuiUI::Render()
+    {
+        //static bool show = true;
+        //ImGui::ShowDemoWindow(&show);
     }
 }

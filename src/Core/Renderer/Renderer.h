@@ -17,8 +17,14 @@ namespace GLMV {
             static void BeginScene(Camera& camera);
             static void EndScene();
 
-            static void DrawMesh(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, const glm::mat4& transform = glm::mat4(1.0f));
+            static void DrawMesh(const Ref<VertexArray>& vertexArray, const glm::mat4& transform, const glm::vec4& color, const int& id);
+            static void DrawLines(const Ref<VertexBuffer>& vertexBuffer, const glm::mat4& transform, const glm::vec4& color, size_t size = 1);
+            static void DrawPoints(const Ref<VertexBuffer>& vertexBuffer, const glm::mat4& transform, const glm::vec4& color, size_t size = 1);
 
+            static void SetMultiSample(bool multisample);
+            static void SetZBuffer(bool zbuffer);
+            static void SetBackfaceCulling(bool backfaceculling);
+            static void SetFill(bool fill);
             static void SetClearColor(const glm::vec4& color);
             static void Clear();
         private:

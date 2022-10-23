@@ -92,8 +92,6 @@ namespace GLMV {
                 rotation.x = atan2(-Row[2][0], Row[1][1]);
                 rotation.z = 0;
             }
-
-
             return true;
         }
 
@@ -211,17 +209,15 @@ namespace GLMV {
             m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
 
-        m_Camera.OnUpdate(ts);
-
-        /* Renderer2D::ResetStats(); */
         m_Framebuffer->Bind();
-        Renderer::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+        Renderer::SetClearColor(m_BgColor);
         Renderer::Clear();
 
         // Clear our entity ID attachment to -1
         m_Framebuffer->ClearAttachment(1, -1);
 
         // Update scene
+        m_Camera.OnUpdate(ts);
         m_ActiveScene->OnUpdate(ts, m_Camera);
 
         auto[mx, my] = ImGui::GetMousePos();
@@ -234,24 +230,68 @@ namespace GLMV {
 
         if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
         {
-            int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
+            auto pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
             m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
         }
+        
+        Renderer::BeginScene(m_Camera);
+
+        auto group = m_ActiveScene.get()->m_Registry.group<TransformComponent, MeshComponent>();
+        for (auto entity : group)
+        {
+            auto [transform, mesh] = group.get<TransformComponent, MeshComponent>(entity);
+
+            // draw points
+            //if (m_ShowVertex)
+            //    Renderer::DrawPoints(mesh.MeshVertex->Vertex->data(), transform.GetTransform(), m_VertexColor, mesh.MeshVertex->Vertex->size() / 2);
+            // draw normals
+            //if (m_ShowNormals)
+            //    Renderer::DrawLines(mesh.MeshVertex->Norms->data(), transform.GetTransform(), m_WireColor, mesh.MeshVertex->Norms->size() / 2);
+            // draw wireframe
+            //if (m_ShowWireFrame)
+            //{
+            //    Renderer::Fill(false);
+                //Renderer::DrawTriangles(mesh., transform.GetTransform(), m_WireColor, );
+            //    Renderer::Fill(m_Fill);
+            //}
+            // draw bounding box
+            //if (m_ShowBoundingBox)
+            //{
+            //    Renderer::Fill(false);
+            //    Renderer::DrawCube(mesh.GetMesh(), transform.GetTransform(), m_BoundingBoxColor);
+            //    Renderer::Fill(m_Fill);
+            //}
+        }
+
+        Renderer::EndScene();
 
         m_Framebuffer->Unbind();
     }
 
     void SceneUI::Render()
     {
+        // Note: Switch this to true to enable dockspace
+        static bool dockspaceOpen = true;
+        static bool opt_fullscreen_persistant = true;
+        bool opt_fullscreen = opt_fullscreen_persistant;
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
+        // Converting viewport in our window space
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        if (opt_fullscreen)
+        {
+            ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->Pos);
+            ImGui::SetNextWindowSize(viewport->Size);
+            ImGui::SetNextWindowViewport(viewport->ID);
+            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+        }
 
         if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
             window_flags |= ImGuiWindowFlags_NoBackground;
 
-        static bool docksapceOpen = true;
-        ImGui::Begin("DockSpace Demo", &docksapceOpen, window_flags);
+        ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
 
         // DockSpace
         ImGuiIO& io = ImGui::GetIO();
@@ -267,9 +307,11 @@ namespace GLMV {
         style.WindowMinSize.x = minWinSizeX;
 
         UI_Menu();
+        UI_Stats();
 
         m_SceneEntitiesPanel.Render();
 
+        // Viewport
         ImGui::Begin("Viewport");
 
         // Send framebuffer to texture and display it
@@ -289,50 +331,11 @@ namespace GLMV {
         uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
-        // Gizmos
-        Entity selectedEntity = m_SceneEntitiesPanel.GetSelectedEntity();
-        if (selectedEntity && m_GizmoType != -1)
-        {
-            ImGuizmo::SetOrthographic(false);
-            ImGuizmo::SetDrawlist();
+        UI_Gizmo();
+ 
+        ImGui::End(); // Viewport
 
-            ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
-
-            // Camera
-            const glm::mat4& cameraProjection = m_Camera.GetProjection();
-            glm::mat4 cameraView = m_Camera.GetViewMatrix();
-
-            // Entity transform
-            auto& tc = selectedEntity.GetComponent<TransformComponent>();
-            glm::mat4 transform = tc.GetTransform();
-
-            // Snapping
-            bool snap = Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL);
-            float snapValue = 0.5f; // Snap to 0.5m for translation/scale
-                                    // Snap to 45 degrees for rotation
-            if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
-                snapValue = 45.0f;
-
-            float snapValues[3] = { snapValue, snapValue, snapValue };
-
-            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                    (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
-                    nullptr, snap ? snapValues : nullptr);
-
-            if (ImGuizmo::IsUsing())
-            {
-                glm::vec3 translation, rotation, scale;
-                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(translation), glm::value_ptr(rotation), glm::value_ptr(scale));
-
-                glm::vec3 deltaRotation = rotation - tc.Rotation;
-                tc.Translation = translation;
-                tc.Rotation += deltaRotation;
-                tc.Scale = scale;
-            }
-        }
-        ImGui::End();
-
-        ImGui::End();
+        ImGui::End(); // DockSpace
     }
 
     void SceneUI::UI_Menu()
@@ -356,25 +359,104 @@ namespace GLMV {
                 if (ImGui::MenuItem("Exit")) Application::Get().Close();
                 ImGui::EndMenu();
             }
+
+            if (ImGui::BeginMenu("View"))
+            {
+                ImGui::ColorEdit3("Background Color", glm::value_ptr(m_BgColor));
+                ImGui::ColorEdit3("Wire Color", glm::value_ptr(m_WireColor));
+                ImGui::ColorEdit3("Vertex Color", glm::value_ptr(m_VertexColor));
+                ImGui::ColorEdit3("Normals Color", glm::value_ptr(m_NormalsColor));
+
+                ImGui::Separator();
+
+                if (ImGui::Checkbox("Z-Buffer", &m_Zbuffer))
+                    Renderer::SetZBuffer(m_Zbuffer);
+                if (ImGui::Checkbox("Antialiasing", &m_Multisample))
+                    Renderer::SetMultiSample(m_Multisample);
+                if (ImGui::Checkbox("Back Face Culling", &m_BackfaceCulling))
+                    Renderer::SetBackfaceCulling(m_BackfaceCulling);
+
+                ImGui::Separator();
+
+                ImGui::Checkbox("Show BoundingBox", &m_ShowBoundingBox);
+                ImGui::Checkbox("Show WireFrame", &m_ShowWireFrame);
+                ImGui::Checkbox("Show Normals", &m_ShowNormals);
+                ImGui::Checkbox("Show Vertex", &m_ShowVertex);
+                ImGui::Checkbox("Fill Triangle", &m_Fill);
+
+                ImGui::EndMenu();
+            }
+
             ImGui::EndMenuBar();
         }
     }
 
     void SceneUI::UI_Toolbar()
     {
-
     }
 
     void SceneUI::UI_Stats()
     {
         ImGui::Begin("Stats");
 
+        ImGui::Text("Frameraete: %d", (int) ImGui::GetIO().Framerate);
+
         std::string name = "None";
         if (m_HoveredEntity)
-            name = std::to_string(m_HoveredEntity.GetComponent<IDComponent>().ID);
+            name = m_HoveredEntity.GetComponent<TagComponent>().Tag;
         ImGui::Text("Hovered Entity: %s", name.c_str());
 
+        std::string id_name = "None";
+        if (m_HoveredEntity)
+            id_name = std::to_string(m_HoveredEntity.GetComponent<IDComponent>().ID);
+        ImGui::Text("Hovered Entity ID: %s", id_name.c_str());
+        
         ImGui::End();
+    }
+
+    void SceneUI::UI_Gizmo()
+    {
+        // Gizmos
+        Entity selectedEntity = m_SceneEntitiesPanel.GetSelectedEntity();
+        if (selectedEntity && m_GizmoType != -1)
+        {
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetDrawlist();
+
+            ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
+
+            // Camera
+            const glm::mat4& cameraProjection = m_Camera.GetProjection();
+            glm::mat4 cameraView = m_Camera.GetViewMatrix();
+
+            // Entity transform
+            auto& tc = selectedEntity.GetComponent<TransformComponent>();
+            glm::mat4 transform = tc.GetTransform();
+
+            // Snapping
+            bool snap = Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL);
+            float snapValue = 0.5f; // Snap to 0.5m for translation/scale
+            // Snap to 45 degrees for rotation
+            if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
+                snapValue = 45.0f;
+
+            float snapValues[3] = { snapValue, snapValue, snapValue };
+
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                nullptr, snap ? snapValues : nullptr);
+
+            if (ImGuizmo::IsUsing())
+            {
+                glm::vec3 translation, rotation, scale;
+                Math::DecomposeTransform(transform, translation, rotation, scale);
+
+                glm::vec3 deltaRotation = rotation - tc.Rotation;
+                tc.Translation = translation;
+                tc.Rotation += deltaRotation;
+                tc.Scale = scale;
+            }
+        }
     }
 
     void SceneUI::NewScene()
@@ -382,11 +464,12 @@ namespace GLMV {
         m_ActiveScene = CreateRef<Scene>();
         m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         m_SceneEntitiesPanel.SetScene(m_ActiveScene);
+        m_CurrentScenePath = "";
     }
 
     void SceneUI::OpenScene()
     {
-        std::string filepath = tinyfd_openFileDialog(
+        auto filepath = tinyfd_openFileDialog(
                 "Open scene...",
                 NULL,
                 2,
@@ -395,8 +478,10 @@ namespace GLMV {
                 false
                 );
 
-        if (!filepath.empty())
-            OpenScene(filepath);
+        if (!filepath)
+            return;
+
+        OpenScene(std::string(filepath));
     }
 
     void SceneUI::OpenScene(const std::filesystem::path& path)
@@ -422,7 +507,7 @@ namespace GLMV {
 
     void SceneUI::SaveSceneAs()
     {
-        std::string filepath = tinyfd_saveFileDialog(
+        auto filepath = tinyfd_saveFileDialog(
                 "Save scene...",
                 NULL,
                 2,
@@ -430,11 +515,12 @@ namespace GLMV {
                 NULL
                 );
 
-        if (!filepath.empty())
-        {
-            SerializeScene(m_ActiveScene, filepath);
-            m_CurrentScenePath = filepath;
-        }
+        if (!filepath)
+            return;
+        
+        auto fpath = std::string(filepath);
+        SerializeScene(m_ActiveScene, fpath);
+        m_CurrentScenePath = fpath;
     }
 
     void SceneUI::SerializeScene(Ref<Scene> scene, const std::filesystem::path& path)

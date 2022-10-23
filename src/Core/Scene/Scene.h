@@ -17,8 +17,9 @@ namespace GLMV {
             Scene();
             ~Scene();
 
-            Entity CreateEntity();
-            Entity CreateEntityWithUUID(UUID uuid);
+            Entity CreateEntity(std::string& name);
+            Entity CreateEntityWithUUID(std::string& name, UUID uuid, UUID guid = 0);
+            Entity CreateEntityWithGroupUUID(std::string& name, UUID uuid);
             void DestroyEntity(Entity entity);
 
             void OnUpdate(Timestep ts, Camera& camera);
@@ -31,5 +32,6 @@ namespace GLMV {
             friend class Entity;
             friend class SceneSerializer;
             friend class EntityUI;
+            friend class SceneUI;
     };
 }

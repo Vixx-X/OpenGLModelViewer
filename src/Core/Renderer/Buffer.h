@@ -113,7 +113,7 @@ namespace GLMV {
             virtual const BufferLayout& GetLayout() const { return m_Layout; }
             virtual void SetLayout(const BufferLayout& layout) { m_Layout = layout; }
 
-            static VertexBuffer* Create(float* vertices, uint32_t size) { return new VertexBuffer(vertices, size); }
+            static Ref<VertexBuffer> Create(float* vertices, uint32_t size) { return CreateRef<VertexBuffer>(vertices, size); }
 
         private:
             uint32_t m_RendererID;
@@ -131,7 +131,7 @@ namespace GLMV {
 
             virtual uint32_t GetCount() const { return m_Count; }
 
-            static IndexBuffer* Create(uint32_t* indices, uint32_t size) { return new IndexBuffer(indices, size); }
+            static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t size) { return CreateRef<IndexBuffer>(indices, size); }
 
         private:
             uint32_t m_RendererID;

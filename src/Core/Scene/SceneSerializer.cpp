@@ -121,6 +121,17 @@ namespace GLMV {
         out << YAML::BeginMap; // Entity
         out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID();
 
+        if (entity.HasComponent<TagComponent>())
+        {
+            out << YAML::Key << "TagComponent";
+            out << YAML::BeginMap; // TagComponent
+
+            auto& tag = entity.GetComponent<TagComponent>().Tag;
+            out << YAML::Key << "Tag" << YAML::Value << tag;
+
+            out << YAML::EndMap; // TagComponent
+        }
+
         if (entity.HasComponent<TransformComponent>())
         {
             out << YAML::Key << "TransformComponent";
@@ -134,6 +145,43 @@ namespace GLMV {
             out << YAML::EndMap; // TransformComponent
         }
 
+        if (entity.HasComponent<MeshComponent>())
+        {
+            out << YAML::Key << "MeshComponent";
+            out << YAML::BeginMap; // MeshComponent
+
+            auto& tc = entity.GetComponent<MeshComponent>();
+            out << YAML::Key << "Name" << YAML::Value << tc.Name;
+
+            out << YAML::Key << "Vertices" << YAML::Value << YAML::Flow << YAML::BeginSeq;
+            for (int idx = 0; idx < tc.MeshVertex->Vertices->size(); idx += 2) // pos, norm
+            {
+                out << tc.MeshVertex->Vertices->at(idx);
+                out << tc.MeshVertex->Vertices->at(idx + 1);
+            }
+            out << YAML::EndSeq;
+
+            out << YAML::Key << "Indexes" << YAML::Value << YAML::Flow << YAML::BeginSeq;
+            for (int idx = 0; idx < tc.MeshVertex->Indexes->size(); ++idx)
+            {
+                out << tc.MeshVertex->Indexes->at(idx);
+            }
+            out << YAML::EndSeq;
+
+            out << YAML::EndMap; // MeshComponent
+        }
+
+        if (entity.HasComponent<MaterialComponent>())
+        {
+            out << YAML::Key << "MaterialComponent";
+            out << YAML::BeginMap; // MaterialComponent
+
+            auto& tc = entity.GetComponent<MaterialComponent>();
+            out << YAML::Key << "Name" << YAML::Value << tc.Name;
+            out << YAML::Key << "Color" << YAML::Value << tc.Color;
+            out << YAML::EndMap; // MaterialComponent
+        }
+
         out << YAML::EndMap; // Entity
     }
 
@@ -141,26 +189,17 @@ namespace GLMV {
     {
         YAML::Emitter out;
         out << YAML::BeginMap;
+
+        out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+        m_Scene->m_Registry.each([&](auto entityID)
         {
-            out << YAML::Key << "Camera";
-            out << YAML::BeginMap; // Camera
+            Entity entity = { entityID, m_Scene.get() };
+            if (!entity)
+                return;
 
-
-            out << YAML::EndMap; // Camera
-        }
-
-        {
-            out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-            m_Scene->m_Registry.each([&](auto entityID)
-            {
-                Entity entity = { entityID, m_Scene.get() };
-                if (!entity)
-                    return;
-
-                SerializeEntity(out, entity);
-            });
-            out << YAML::EndSeq;
-        }
+            SerializeEntity(out, entity);
+        });
+        out << YAML::EndSeq;
 
         out << YAML::EndMap;
 
@@ -177,7 +216,7 @@ namespace GLMV {
         }
         catch (YAML::ParserException e)
         {
-            LOG_ERROR("Failed to load .glmv file '%s'\n", filepath);
+            LOG_ERROR("Failed to load .yaml file '%s'\n", filepath.c_str());
             return false;
         }
 
@@ -188,17 +227,59 @@ namespace GLMV {
             {
                 uint64_t uuid = entity["Entity"].as<uint64_t>();
 
-                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid);
+                std::string tag;
+                auto tagComponent = entity["TagComponent"];
+                if (tagComponent)
+                    tag = tagComponent["Tag"].as<std::string>();
+
+                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(tag, uuid);
 
                 auto transformComponent = entity["TransformComponent"];
                 if (transformComponent)
                 {
-                    // Entities always have transforms
-                    auto& tc = deserializedEntity.GetComponent<TransformComponent>();
+                    auto& tc = deserializedEntity.GetComponent<TransformComponent>(); // there is already in there
                     tc.Translation = transformComponent["Translation"].as<glm::vec3>();
                     tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
                     tc.Scale = transformComponent["Scale"].as<glm::vec3>();
                 }
+
+                auto meshComponent = entity["MeshComponent"];
+                if (meshComponent)
+                {
+                    auto& tc = deserializedEntity.AddComponent<MeshComponent>();
+                    tc.Name = meshComponent["Name"].as<std::string>();
+
+                    tc.MeshVertex = Mesh::Create();
+
+                    auto vertices = meshComponent["Vertices"];
+                    if (vertices)
+                    {
+                        auto& vx = tc.MeshVertex->Vertices;
+                        for (auto vertex : vertices)
+                        {
+                            vx->push_back(vertex.as<glm::vec3>());
+                        }
+                    }
+
+                    auto indexes = meshComponent["Indexes"];
+                    if (indexes)
+                    {
+                        auto& idx = tc.MeshVertex->Indexes;
+                        for (auto index : indexes)
+                        {
+                            idx->push_back(index.as<uint32_t>());
+                        }
+                    }
+                }
+
+                auto materialComponent = entity["MaterialComponent"];
+                if (materialComponent)
+                {
+                    auto& tc = deserializedEntity.AddComponent<MaterialComponent>();
+                    tc.Name = materialComponent["Name"].as<std::string>();
+                    tc.Color = materialComponent["Color"].as<glm::vec4>();
+                }
+
             }
         }
 

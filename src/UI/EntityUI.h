@@ -21,6 +21,7 @@ namespace GLMV {
         private:
             void DrawEntity(Entity entity);
             void DrawComponents(Entity entity);
+            void ImportMesh();
         private:
             Ref<Scene> m_Context;
             Entity m_SelectionContext;

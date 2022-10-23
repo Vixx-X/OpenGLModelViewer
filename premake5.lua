@@ -54,7 +54,7 @@ project "OpenGLModelViewer"
         defines { "_X11" }
 
     filter "system:windows"
-    links { "opengl32.lib" }
+        links { "opengl32.lib" }
         defines {
             "_WINDOWS",
             "_CRT_SECURE_NO_WARNINGS",
