@@ -43,31 +43,101 @@ namespace GLMV {
         glDrawElements(s_Fill? GL_TRIANGLES : GL_LINE_LOOP, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
     }
 
-    void Renderer::DrawLines(const Ref<VertexBuffer>& vertexBuffer, const glm::mat4& transform, const glm::vec4& color, size_t size)
+    void Renderer::DrawMesh(const Ref<VertexArray>& vertexArray, const glm::mat4& transform, const glm::vec4& color)
     {
         s_DefaultShader->Bind();
         s_DefaultShader->UploadUniformMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
         s_DefaultShader->UploadUniformMat4("u_Transform", transform);
         s_DefaultShader->UploadUniformFloat4("u_Color", color);
 
-        vertexBuffer->Bind();
+        vertexArray->Bind();
+        glDrawElements(GL_LINE_LOOP, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+    }
+
+    void Renderer::DrawLines(const Ref<VertexArray>& vertexArray, const glm::mat4& transform, const glm::vec4& color, size_t size)
+    {
+        s_DefaultShader->Bind();
+        s_DefaultShader->UploadUniformMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
+        s_DefaultShader->UploadUniformMat4("u_Transform", transform);
+        s_DefaultShader->UploadUniformFloat4("u_Color", color);
+
+        vertexArray->Bind();
         glDrawArrays(GL_LINES, 0, size * 2);
     }
 
-    void Renderer::DrawPoints(const Ref<VertexBuffer>& vertexBuffer, const glm::mat4& transform, const glm::vec4& color, size_t size)
+    void Renderer::DrawPoints(const Ref<VertexArray>& vertexArray, const glm::mat4& transform, const glm::vec4& color, size_t size)
     {
         s_DefaultShader->Bind();
         s_DefaultShader->UploadUniformMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
         s_DefaultShader->UploadUniformMat4("u_Transform", transform);
         s_DefaultShader->UploadUniformFloat4("u_Color", color);
 
-        vertexBuffer->Bind();
+        vertexArray->Bind();
         glDrawArrays(GL_POINTS, 0, size);
+    }
+
+    void Renderer::DrawCube(const glm::mat4& transform, const glm::vec4& color)
+    {
+        s_DefaultShader->Bind();
+        s_DefaultShader->UploadUniformMat4("u_ViewProjection", s_SceneData->ViewProjectionMatrix);
+        s_DefaultShader->UploadUniformMat4("u_Transform", transform);
+        s_DefaultShader->UploadUniformFloat4("u_Color", color);
+
+        float vertices[] =
+        { //     UNIT CUBE      COORDINATES         
+            0.500000, -0.500000, -0.500000,
+            0.500000, -0.500000,  0.500000,
+           -0.500000, -0.500000,  0.500000,
+           -0.500000, -0.500000, -0.500000,
+            0.500000,  0.500000, -0.500000,
+            0.500000,  0.500000,  0.500000,
+           -0.500000,  0.500000,  0.500000,
+           -0.500000,  0.500000, -0.500000,
+        };
+
+        uint32_t indices[] =
+        {
+            1,2,3,
+            7,6,5,
+            4,5,1,
+            5,6,2,
+            2,6,7,
+            0,3,7,
+            0,1,3,
+            4,7,5,
+            0,4,1,
+            1,5,2,
+            3,2,7,
+            4,0,7
+        };
+
+        auto vertexArray = VertexArray::Create();
+        Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(vertices, sizeof(vertices));
+        vertexBuffer->SetLayout({
+            { ShaderDataType::Float3, "a_Position" },
+            });
+        vertexArray->AddVertexBuffer(vertexBuffer);
+
+        Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, sizeof(indices));
+        vertexArray->SetIndexBuffer(indexBuffer);
+
+        vertexArray->Bind();
+        glDrawElements(GL_LINE_LOOP, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
     }
 
     void Renderer::SetFill(bool fill)
     {
         s_Fill = fill;
+    }
+
+    void Renderer::SetPointSize(float size)
+    {
+        glPointSize(size);
+    }
+
+    void Renderer::SetLineSize(float size)
+    {
+        glLineWidth(size);
     }
 
     void Renderer::SetMultiSample(bool multisample)

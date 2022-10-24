@@ -85,7 +85,7 @@ namespace GLMV {
                 case FramebufferTextureFormat::RED_INTEGER: return GL_RED_INTEGER;
             }
 
-            GLMV_ASSERT(false);
+            GLMV_ASSERT(false, "Framebuffer format not supported");
             return 0;
         }
 
@@ -164,7 +164,7 @@ namespace GLMV {
 
         if (m_ColorAttachments.size() > 1)
         {
-            GLMV_ASSERT(m_ColorAttachments.size() <= 4);
+            GLMV_ASSERT(m_ColorAttachments.size() <= 4, "Color attachment < 4");
             GLenum buffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
             glDrawBuffers(m_ColorAttachments.size(), buffers);
         }
@@ -205,7 +205,7 @@ namespace GLMV {
 
     int Framebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
     {
-        GLMV_ASSERT(attachmentIndex < m_ColorAttachments.size());
+        GLMV_ASSERT(attachmentIndex < m_ColorAttachments.size(), "No color attachment");
 
         glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
         int pixelData;
@@ -216,7 +216,7 @@ namespace GLMV {
 
     void Framebuffer::ClearAttachment(uint32_t attachmentIndex, int value)
     {
-        GLMV_ASSERT(attachmentIndex < m_ColorAttachments.size());
+        GLMV_ASSERT(attachmentIndex < m_ColorAttachments.size(), "No color attachment");
 
         auto& spec = m_ColorAttachmentSpecifications[attachmentIndex];
         glClearTexImage(m_ColorAttachments[attachmentIndex], 0,

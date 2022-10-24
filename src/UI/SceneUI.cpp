@@ -164,19 +164,19 @@ namespace GLMV {
                         m_GizmoType = -1;
                     break;
                 }
-            case GLFW_KEY_W:
+            case GLFW_KEY_T:
                 {
                     if (!ImGuizmo::IsUsing())
                         m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
                     break;
                 }
-            case GLFW_KEY_E:
+            case GLFW_KEY_R:
                 {
                     if (!ImGuizmo::IsUsing())
                         m_GizmoType = ImGuizmo::OPERATION::ROTATE;
                     break;
                 }
-            case GLFW_KEY_R:
+            case GLFW_KEY_E:
                 {
                     if (!ImGuizmo::IsUsing())
                         m_GizmoType = ImGuizmo::OPERATION::SCALE;
@@ -241,26 +241,43 @@ namespace GLMV {
         {
             auto [transform, mesh] = group.get<TransformComponent, MeshComponent>(entity);
 
+            glPolygonOffset(10, 10);
+
             // draw points
-            //if (m_ShowVertex)
-            //    Renderer::DrawPoints(mesh.MeshVertex->Vertex->data(), transform.GetTransform(), m_VertexColor, mesh.MeshVertex->Vertex->size() / 2);
+            if (m_ShowVertex)
+                Renderer::DrawPoints(mesh.GetVertex(), transform.GetTransform(), m_VertexColor, mesh.MeshVertex->Vertex->size());
+
             // draw normals
-            //if (m_ShowNormals)
-            //    Renderer::DrawLines(mesh.MeshVertex->Norms->data(), transform.GetTransform(), m_WireColor, mesh.MeshVertex->Norms->size() / 2);
+            if (m_ShowNormals)
+            {
+                Ref<VertexArray> VertexArray = VertexArray::Create();
+                Ref<std::vector<glm::vec3>> vertices = mesh.MeshVertex->Normals;
+
+                for (int i = 1; i < vertices->size(); i += 2)
+                    vertices->at(i) *= m_LineSize;
+
+                Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create((float*)vertices->data(), vertices->size() * sizeof(glm::vec3));
+                BufferLayout layout = {
+                    { ShaderDataType::Float3, "a_Position" },
+                };
+                vertexBuffer->SetLayout(layout);
+                VertexArray->AddVertexBuffer(vertexBuffer);
+                Renderer::DrawLines(VertexArray, transform.GetTransform(), m_WireColor, vertices->size() / 2);
+            }
+
             // draw wireframe
-            //if (m_ShowWireFrame)
-            //{
-            //    Renderer::Fill(false);
-                //Renderer::DrawTriangles(mesh., transform.GetTransform(), m_WireColor, );
-            //    Renderer::Fill(m_Fill);
-            //}
+            if (m_ShowWireFrame)
+            {
+                Renderer::SetFill(false);
+                Renderer::DrawMesh(mesh.GetWireFrameMesh(), transform.GetTransform(), m_WireColor);
+                Renderer::SetFill(m_Fill);
+            }
             // draw bounding box
-            //if (m_ShowBoundingBox)
-            //{
-            //    Renderer::Fill(false);
-            //    Renderer::DrawCube(mesh.GetMesh(), transform.GetTransform(), m_BoundingBoxColor);
-            //    Renderer::Fill(m_Fill);
-            //}
+            if (m_ShowBoundingBox)
+                Renderer::DrawCube(transform.GetTransform(), m_BoundingBoxColor);
+
+            glPolygonOffset(0, 0);
+
         }
 
         Renderer::EndScene();
@@ -366,6 +383,7 @@ namespace GLMV {
                 ImGui::ColorEdit3("Wire Color", glm::value_ptr(m_WireColor));
                 ImGui::ColorEdit3("Vertex Color", glm::value_ptr(m_VertexColor));
                 ImGui::ColorEdit3("Normals Color", glm::value_ptr(m_NormalsColor));
+                ImGui::ColorEdit3("Bounding Box Color", glm::value_ptr(m_BoundingBoxColor));
 
                 ImGui::Separator();
 
@@ -375,6 +393,10 @@ namespace GLMV {
                     Renderer::SetMultiSample(m_Multisample);
                 if (ImGui::Checkbox("Back Face Culling", &m_BackfaceCulling))
                     Renderer::SetBackfaceCulling(m_BackfaceCulling);
+                if (ImGui::DragFloat("Point Size", &m_PointSize, 1.0f, 1.0f));
+                    Renderer::SetPointSize(m_PointSize);
+                if (ImGui::DragFloat("Line Size", &m_LineSize, 1.0f, 1.0f));
+                    Renderer::SetLineSize(m_LineSize);
 
                 ImGui::Separator();
 
@@ -382,7 +404,8 @@ namespace GLMV {
                 ImGui::Checkbox("Show WireFrame", &m_ShowWireFrame);
                 ImGui::Checkbox("Show Normals", &m_ShowNormals);
                 ImGui::Checkbox("Show Vertex", &m_ShowVertex);
-                ImGui::Checkbox("Fill Triangle", &m_Fill);
+                if (ImGui::Checkbox("Fill Triangle", &m_Fill))
+                    Renderer::SetFill(m_Fill);
 
                 ImGui::EndMenu();
             }
@@ -490,6 +513,8 @@ namespace GLMV {
         SceneSerializer serializer(newScene);
         if (serializer.Deserialize(path.string()))
         {
+            m_ActiveScene = newScene;
+            m_ActiveScene = newScene;
             m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_SceneEntitiesPanel.SetScene(m_ActiveScene);
 
@@ -519,7 +544,7 @@ namespace GLMV {
             return;
         
         auto fpath = std::string(filepath);
-        SerializeScene(m_ActiveScene, fpath);
+        SerializeScene(m_ActiveScene, fpath + ".yaml");
         m_CurrentScenePath = fpath;
     }
 

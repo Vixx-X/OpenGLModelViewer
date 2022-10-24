@@ -84,11 +84,13 @@ namespace GLMV {
         s_MTLMap.clear();
         s_MeshVec.clear();
 
-        std::vector<glm::vec3> vertices, normals;
+        Ref<std::vector<glm::vec3>> vertices = CreateRef<std::vector<glm::vec3>>();
+        Ref<std::vector<glm::vec3>> normals = CreateRef<std::vector<glm::vec3>>();
 
         Ref<MeshNode> mesh = {};
         std::string line;
         std::string meshName;
+        std::string mtl;
         while (std::getline(in, line))
         {
             std::istringstream iss(line);
@@ -106,36 +108,34 @@ namespace GLMV {
             }
             else if (token == "o" or token == "g")
             {
+                iss >> meshName;
+            }
+            else if (token == "usemtl")
+            {
                 if (mesh)
                 {
                     // still need to compute normals and normalize
                     s_MeshVec.push_back(mesh);
                 }
-                iss >> meshName;
-                mesh = CreateRef<MeshNode>();
-                mesh->Name = meshName;
-                mesh->Mesh_ = Mesh::Create();
-            }
-            else if (token == "usemtl")
-            {
-                std::string mtl;
                 iss >> mtl;
+                mesh = CreateRef<MeshNode>();
+                mesh->Mesh_ = Mesh::Create();
+                mesh->Name = meshName;
                 mesh->Material_ = mtl;
             }
             else if (token == "v")
             {
                 float x = 0, y = 0, z = 0, w = 1;
                 iss >> x >> y >> z >> w;
-                vertices.push_back(glm::vec3(x, y, z));
+                vertices->push_back(glm::vec3(x, y, z));
             }
             else if (token == "f")
             {
                 std::string _str;
-                float _idx;
                 uint32_t cnt{};
+
                 while (iss >> _str)
                 {
-                    cnt++;
                     std::istringstream ref(_str);
                     std::string vStr, vtStr, vnStr;
                     std::getline(ref, vStr, '/');
@@ -146,15 +146,25 @@ namespace GLMV {
                    // int vn = atoi(vnStr.c_str());
                    // vt = (vt >= 0 ? vt : texcoords.size() + vt);
                    // vn = (vn >= 0 ? vn : normals.size() + vn);
+
+                    if (cnt >= 3)
+                    {
+                        // triangularize
+                        auto last = mesh->Mesh_->Indexes->at(mesh->Mesh_->Indexes->size() - 1);
+                        mesh->Mesh_->Indexes->push_back(mesh->Mesh_->Indexes->at(0));
+                        mesh->Mesh_->Indexes->push_back(last);
+                    }
+
                     mesh->Mesh_->Indexes->push_back(v - 1);
+
+                    cnt++;
                 }
-                if (cnt != 3)
-                {
-                    LOG_ERROR("Only supported obj with triangles");
-                    return false;
-                }
+
+                GLMV_ASSERT(mesh->Mesh_->Indexes->size() % 3 == 0, "Should have eneded in triangles");
             }
         }
+
+        GLMV_ASSERT(mesh->Mesh_->Indexes->size() % 3 == 0, "Vertex cannot form all triangles");
 
         if (mesh)
         {
@@ -163,7 +173,7 @@ namespace GLMV {
         }
 
         // computing normals
-        normals.resize(vertices.size());
+        normals->resize(vertices->size(), glm::vec3());
 
         // faces
         for (Ref<MeshNode> mesh : s_MeshVec)
@@ -173,18 +183,18 @@ namespace GLMV {
                 int ix = mesh->Mesh_->Indexes->at(idx),
                     iy = mesh->Mesh_->Indexes->at(idx + 1),
                     iz = mesh->Mesh_->Indexes->at(idx + 2);
-                glm::vec3 vx = vertices[ix],
-                    vy = vertices[iy],
-                    vz = vertices[iz];
+                glm::vec3 vx = vertices->at(ix),
+                    vy = vertices->at(iy),
+                    vz = vertices->at(iz);
                 glm::vec3 normal = ComputeNormal(vx, vy, vz);
-                normals[ix] += normal;
-                normals[iy] += normal;
-                normals[iz] += normal;
+                normals->at(ix) += normal;
+                normals->at(iy) += normal;
+                normals->at(iz) += normal;
             }
         }
 
         // scaling
-        CenterAndScale(vertices.data(), sizeof(glm::vec3), vertices.size(), 1);
+        CenterAndScale(vertices->data(), sizeof(glm::vec3), vertices->size(), 1);
 
         UUID guid = UUID();
         for (Ref<MeshNode> meshNode : s_MeshVec)
@@ -194,13 +204,17 @@ namespace GLMV {
             for (auto i = 0; i < meshNode->Mesh_->Indexes->size(); ++i)
             {
                 auto& idx = meshNode->Mesh_->Indexes->at(i);
-                glm::vec3 vertex = vertices[idx], normal = normals[idx];
+                glm::vec3 vertex = vertices->at(idx), normal = glm::normalize(normals->at(idx));
                 vertexBuffer->push_back(vertex);
-                vertexBuffer->push_back(glm::normalize(normal));
+                vertexBuffer->push_back(normal);
+                mesh->Mesh_->Vertex->push_back(vertex);
+                mesh->Mesh_->Normals->push_back(vertex);
+                mesh->Mesh_->Normals->push_back(vertex + normal);
                 idx = i;
             }
 
             mesh->Mesh_->Vertices = vertexBuffer;
+            mesh->Mesh_->BoundingBox = CreateRef<std::pair< glm::vec3, glm::vec3 >>(GetExtents(mesh->Mesh_->Vertex->data(), sizeof(glm::vec3), mesh->Mesh_->Vertex->size()));
 
             auto entity = scene->Scene::CreateEntityWithGroupUUID(meshNode->Name, guid);
             entity.AddComponent<MeshComponent>(meshNode->Mesh_, meshNode->Name, path);

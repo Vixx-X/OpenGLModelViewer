@@ -31,10 +31,10 @@ namespace GLMV {
         if (m_Context)
         {
             m_Context->m_Registry.each([&](auto entityID)
-                {
-                    Entity entity{ entityID , m_Context.get() };
-                    DrawEntity(entity);
-                });
+            {
+                Entity entity{ entityID , m_Context.get() };
+                DrawEntity(entity);
+            });
 
             if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
                 m_SelectionContext = {};
@@ -126,7 +126,7 @@ namespace GLMV {
             {
                 tag = std::string(buffer);
             }
-            ImGui::ColorEdit3("Color", glm::value_ptr(component.Color));
+            ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
         }
     }
     void EntityUI::ImportMesh()

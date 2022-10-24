@@ -64,7 +64,7 @@ namespace GLMV {
             void ClearAttachment(uint32_t attachmentIndex, int value);
 
             uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const {
-                GLMV_ASSERT(index < m_ColorAttachments.size());
+                GLMV_ASSERT(index < m_ColorAttachments.size(), "No color attachment")
                 return m_ColorAttachments[index];
             }
 

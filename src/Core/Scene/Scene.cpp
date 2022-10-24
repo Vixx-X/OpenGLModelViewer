@@ -48,10 +48,10 @@ namespace GLMV {
     {
         Renderer::BeginScene(camera);
 
-        auto group = m_Registry.group<TagComponent, TransformComponent, MeshComponent, MaterialComponent>();
+        auto group = m_Registry.group<TransformComponent, MeshComponent, MaterialComponent>();
         for (auto entity : group)
         {
-            auto [tag, transform, mesh, material] = group.get<TagComponent, TransformComponent, MeshComponent, MaterialComponent>(entity);
+            auto [transform, mesh, material] = group.get<TransformComponent, MeshComponent, MaterialComponent>(entity);
 
             Renderer::DrawMesh(mesh.GetMesh(), transform.GetTransform(), material.Color, (uint32_t)entity);
         }

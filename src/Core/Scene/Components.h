@@ -64,14 +64,47 @@ namespace GLMV {
         MeshComponent(const Ref<Mesh>& mesh, std::string name, std::filesystem::path path = "")
             : MeshVertex(mesh), Name(name), Filepath(path) {}
 
+        Ref<VertexArray> GetVertex() const
+        {
+            Ref<VertexArray> VertexArray = VertexArray::Create();
+            Ref<std::vector<glm::vec3>> vertices = MeshVertex->Vertex;
+
+            Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create((float*)vertices->data(), vertices->size() * sizeof(glm::vec3));
+            BufferLayout layout = {
+                { ShaderDataType::Float3, "a_Position" },
+            };
+            vertexBuffer->SetLayout(layout);
+            VertexArray->AddVertexBuffer(vertexBuffer);
+            return VertexArray;
+        }
+
+        Ref<VertexArray> GetWireFrameMesh() const
+        {
+            Ref<VertexArray> VertexArray = VertexArray::Create();
+            Ref<std::vector<glm::vec3>> vertices = MeshVertex->Vertex;
+            Ref<std::vector<uint32_t>> indices = MeshVertex->Indexes;
+
+            Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create((float*)vertices->data(), vertices->size() * sizeof(glm::vec3));
+            BufferLayout layout = {
+                { ShaderDataType::Float3, "a_Position" },
+            };
+            vertexBuffer->SetLayout(layout);
+            VertexArray->AddVertexBuffer(vertexBuffer);
+
+            Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices->data(), indices->size());
+            VertexArray->SetIndexBuffer(indexBuffer);
+
+            return VertexArray;
+        }
+
         Ref<VertexArray> GetMesh() const
         {
-#if 0
+#if 1
             Ref<VertexArray> VertexArray = VertexArray::Create();
             Ref<std::vector<glm::vec3>> vertices = MeshVertex->Vertices;
             Ref<std::vector<uint32_t>> indices = MeshVertex->Indexes;
 
-            Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create((float*)vertices->data(), vertices->size());
+            Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create((float*)vertices->data(), vertices->size() * sizeof(glm::vec3));
             BufferLayout layout = {
                 { ShaderDataType::Float3, "a_Position" },
                 { ShaderDataType::Float3, "a_Normal" }

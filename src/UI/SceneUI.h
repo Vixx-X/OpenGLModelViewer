@@ -66,6 +66,9 @@ namespace GLMV {
 
             int m_GizmoType = -1;
 
+            float m_PointSize = 1;
+            float m_LineSize = 1;
+
             bool m_Zbuffer = true;
             bool m_Multisample = true;
             bool m_BackfaceCulling = true;

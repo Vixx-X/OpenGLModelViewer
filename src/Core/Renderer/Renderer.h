@@ -18,13 +18,18 @@ namespace GLMV {
             static void EndScene();
 
             static void DrawMesh(const Ref<VertexArray>& vertexArray, const glm::mat4& transform, const glm::vec4& color, const int& id);
-            static void DrawLines(const Ref<VertexBuffer>& vertexBuffer, const glm::mat4& transform, const glm::vec4& color, size_t size = 1);
-            static void DrawPoints(const Ref<VertexBuffer>& vertexBuffer, const glm::mat4& transform, const glm::vec4& color, size_t size = 1);
+            static void DrawMesh(const Ref<VertexArray>& vertexArray, const glm::mat4& transform, const glm::vec4& color);
+            static void DrawLines(const Ref<VertexArray>& vertexArray, const glm::mat4& transform, const glm::vec4& color, size_t size = 1);
+            static void DrawPoints(const Ref<VertexArray>& vertexArray, const glm::mat4& transform, const glm::vec4& color, size_t size = 1);
+            static void DrawCube(const glm::mat4& transform, const glm::vec4& color);
 
             static void SetMultiSample(bool multisample);
             static void SetZBuffer(bool zbuffer);
             static void SetBackfaceCulling(bool backfaceculling);
             static void SetFill(bool fill);
+            static void SetPointSize(float size);
+            static void SetLineSize(float size);
+
             static void SetClearColor(const glm::vec4& color);
             static void Clear();
         private:

@@ -6,7 +6,7 @@ workspace "OpenGLModelViewer"
     conformancemode "true"
 
     filter "configurations:Debug"
-        defines { "DEBUG", "DEBUG_SHADER" }
+        defines { "DEBUG", "DEBUG_SHADER", "GLMV_DEBUG" }
         symbols "On"
 
     filter "configurations:Release"

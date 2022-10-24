@@ -116,7 +116,7 @@ namespace GLMV {
 
     static void SerializeEntity(YAML::Emitter& out, Entity entity)
     {
-        GLMV_ASSERT(entity.HasComponent<IDComponent>());
+        GLMV_ASSERT(entity.HasComponent<IDComponent>(), "Entity does not have ID");
 
         out << YAML::BeginMap; // Entity
         out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID();
