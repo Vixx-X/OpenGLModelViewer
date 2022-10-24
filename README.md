@@ -1,6 +1,12 @@
 # OpenGLModelViewer
 
-![image](https://user-images.githubusercontent.com/40926097/197443133-455e7abd-226b-4c85-8ec0-b442c93fbd0d.png)
+[![image](https://user-images.githubusercontent.com/40926097/197443849-c8bee922-4cb8-4d9c-852b-814ed258b697.png)](https://github.com/Vixx-X/OpenGLModelViewer)
+
+## Clone recursively
+
+```
+git clone 
+```
 
 ## Window
 
