@@ -5,7 +5,7 @@
 ## Clone recursively
 
 ```
-git clone 
+git clone https://github.com/Vixx-X/OpenGLModelViewer.git --recursive
 ```
 
 ## Window
