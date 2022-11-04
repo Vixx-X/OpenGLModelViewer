@@ -3,7 +3,11 @@
 #include <memory>
 
 #ifdef GLMV_DEBUG
-    #define GLMV_ASSERT(x, ...) { if(!(x)) { LOG_ERROR("Assertion Failed: %s", __VA_ARGS__); __debugbreak(); } }
+#ifdef _MSC_VER
+#define GLMV_ASSERT(x, ...) { if(!(x)) { LOG_ERROR("Assertion Failed: %s", __VA_ARGS__); __debugbreak(); } }
+#else
+#define GLMV_ASSERT(x, ...) { if(!(x)) { LOG_ERROR("Assertion Failed: %s", __VA_ARGS__); } }
+#endif
 #else
     #define GLMV_ASSERT(x, ...)
 #endif

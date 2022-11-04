@@ -74,7 +74,7 @@ namespace GLMV {
         std::filesystem::path filepath = path.c_str();
         std::string parent = filepath.parent_path().u8string(); // Path to material folder
 
-        std::ifstream in(filepath, std::ios::in, std::ios::binary);
+        std::ifstream in(filepath, std::ios::in | std::ios::binary);
         if (!in)
         {
             LOG_ERROR("Could not open obj file '%s'", filepath.u8string().c_str());
@@ -237,7 +237,7 @@ namespace GLMV {
     {
         std::filesystem::path filepath = path.c_str();
 
-        std::ifstream in(filepath, std::ios::in, std::ios::binary);
+        std::ifstream in(filepath, std::ios::in | std::ios::binary);
         if (!in)
         {
             return false;
@@ -277,6 +277,8 @@ namespace GLMV {
         {
             s_MTLMap[mtl] = material;
         }
+
+        return true;
     }
 
 }
