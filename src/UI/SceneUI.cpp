@@ -109,6 +109,12 @@ namespace GLMV {
 
         m_Camera = Camera(30.0f, 1.778f, 0.1f, 1000.0f);
         NewScene();
+
+        Renderer::SetZBuffer(m_Zbuffer);
+        Renderer::SetMultiSample(m_Multisample);
+        Renderer::SetBackfaceCulling(m_BackfaceCulling);
+        Renderer::SetPointSize(m_PointSize);
+        Renderer::SetLineSize(m_LineSize);
     }
 
     SceneUI::~SceneUI()
@@ -240,30 +246,37 @@ namespace GLMV {
         for (auto entity : group)
         {
             auto [transform, mesh] = group.get<TransformComponent, MeshComponent>(entity);
+            const int NOffset = 10;
 
-            glPolygonOffset(10, 10);
+            glPolygonOffset(NOffset, NOffset);
 
             // draw points
             if (m_ShowVertex)
                 Renderer::DrawPoints(mesh.GetVertex(), transform.GetTransform(), m_VertexColor, mesh.MeshVertex->Vertex->size());
 
+            glPolygonOffset(2*NOffset, 2*NOffset);
+
             // draw normals
             if (m_ShowNormals)
             {
-                Ref<VertexArray> VertexArray = VertexArray::Create();
-                Ref<std::vector<glm::vec3>> vertices = mesh.MeshVertex->Normals;
+                Ref<VertexArray> vertexArray = VertexArray::Create();
+                Ref<std::vector<glm::vec3>> vertices = CreateRef<std::vector<glm::vec3>>(*(mesh.MeshVertex->Normals));
 
+                auto& boundingBox = mesh.MeshVertex->BoundingBox;
+                auto boundingBoxDiagonal = glm::length(boundingBox->second - boundingBox->first);
                 for (int i = 1; i < vertices->size(); i += 2)
-                    vertices->at(i) *= m_LineSize;
+                    vertices->at(i) = vertices->at(i-1) + vertices->at(i) * m_NormalLength/100.0f * boundingBoxDiagonal;
 
                 Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create((float*)vertices->data(), vertices->size() * sizeof(glm::vec3));
                 BufferLayout layout = {
                     { ShaderDataType::Float3, "a_Position" },
                 };
                 vertexBuffer->SetLayout(layout);
-                VertexArray->AddVertexBuffer(vertexBuffer);
-                Renderer::DrawLines(VertexArray, transform.GetTransform(), m_WireColor, vertices->size() / 2);
+                vertexArray->AddVertexBuffer(vertexBuffer);
+                Renderer::DrawLines(vertexArray, transform.GetTransform(), m_NormalsColor, vertices->size() / 2);
             }
+
+            glPolygonOffset(3*NOffset, 3*NOffset);
 
             // draw wireframe
             if (m_ShowWireFrame)
@@ -272,6 +285,8 @@ namespace GLMV {
                 Renderer::DrawMesh(mesh.GetWireFrameMesh(), transform.GetTransform(), m_WireColor);
                 Renderer::SetFill(m_Fill);
             }
+
+            glPolygonOffset(4*NOffset, 4*NOffset);
             // draw bounding box
             if (m_ShowBoundingBox)
                 Renderer::DrawCube(transform.GetTransform(), m_BoundingBoxColor);
@@ -393,10 +408,11 @@ namespace GLMV {
                     Renderer::SetMultiSample(m_Multisample);
                 if (ImGui::Checkbox("Back Face Culling", &m_BackfaceCulling))
                     Renderer::SetBackfaceCulling(m_BackfaceCulling);
-                if (ImGui::DragFloat("Point Size", &m_PointSize, 1.0f, 1.0f));
+                if (ImGui::DragFloat("Point Size", &m_PointSize, 1.0f, 5.0f, 100.0f))
                     Renderer::SetPointSize(m_PointSize);
-                if (ImGui::DragFloat("Line Size", &m_LineSize, 1.0f, 1.0f));
+                if (ImGui::DragFloat("Line Size", &m_LineSize, 1.0f, 1.0f, 100.0f))
                     Renderer::SetLineSize(m_LineSize);
+                ImGui::DragFloat("Normal Length", &m_NormalLength, 1.0f, 1.0f, 100.0f);
 
                 ImGui::Separator();
 

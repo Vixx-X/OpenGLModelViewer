@@ -114,7 +114,6 @@ namespace GLMV {
 
             Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices->data(), indices->size());
             VertexArray->SetIndexBuffer(indexBuffer);
-            VertexArray->SetIndexBuffer(indexBuffer);
 
             return VertexArray;
 #else

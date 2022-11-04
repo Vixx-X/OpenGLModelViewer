@@ -134,6 +134,8 @@ namespace GLMV {
                 std::string _str;
                 uint32_t cnt{};
 
+                int vFirst = -1;
+
                 while (iss >> _str)
                 {
                     std::istringstream ref(_str);
@@ -147,11 +149,13 @@ namespace GLMV {
                    // vt = (vt >= 0 ? vt : texcoords.size() + vt);
                    // vn = (vn >= 0 ? vn : normals.size() + vn);
 
+                    if (vFirst == -1) vFirst = v - 1;
+
                     if (cnt >= 3)
                     {
                         // triangularize
                         auto last = mesh->Mesh_->Indexes->at(mesh->Mesh_->Indexes->size() - 1);
-                        mesh->Mesh_->Indexes->push_back(mesh->Mesh_->Indexes->at(0));
+                        mesh->Mesh_->Indexes->push_back(vFirst);
                         mesh->Mesh_->Indexes->push_back(last);
                     }
 
@@ -209,7 +213,7 @@ namespace GLMV {
                 vertexBuffer->push_back(normal);
                 mesh->Mesh_->Vertex->push_back(vertex);
                 mesh->Mesh_->Normals->push_back(vertex);
-                mesh->Mesh_->Normals->push_back(vertex + normal);
+                mesh->Mesh_->Normals->push_back(normal);
                 idx = i;
             }
 
