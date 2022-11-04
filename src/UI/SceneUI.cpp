@@ -408,7 +408,7 @@ namespace GLMV {
                     Renderer::SetMultiSample(m_Multisample);
                 if (ImGui::Checkbox("Back Face Culling", &m_BackfaceCulling))
                     Renderer::SetBackfaceCulling(m_BackfaceCulling);
-                if (ImGui::DragFloat("Point Size", &m_PointSize, 1.0f, 5.0f, 100.0f))
+                if (ImGui::DragFloat("Point Size", &m_PointSize, 1.0f, 1.0f, 100.0f))
                     Renderer::SetPointSize(m_PointSize);
                 if (ImGui::DragFloat("Line Size", &m_LineSize, 1.0f, 1.0f, 100.0f))
                     Renderer::SetLineSize(m_LineSize);
