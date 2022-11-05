@@ -201,24 +201,21 @@ namespace GLMV {
         CenterAndScale(vertices->data(), sizeof(glm::vec3), vertices->size(), 1);
 
         UUID guid = UUID();
-        for (Ref<MeshNode> meshNode : s_MeshVec)
+        for (auto& meshNode : s_MeshVec)
         {
-            Ref<std::vector<glm::vec3>> vertexBuffer = CreateRef<std::vector<glm::vec3>>();
-
             for (auto i = 0; i < meshNode->Mesh_->Indexes->size(); ++i)
             {
                 auto& idx = meshNode->Mesh_->Indexes->at(i);
                 glm::vec3 vertex = vertices->at(idx), normal = glm::normalize(normals->at(idx));
-                vertexBuffer->push_back(vertex);
-                vertexBuffer->push_back(normal);
-                mesh->Mesh_->Vertex->push_back(vertex);
-                mesh->Mesh_->Normals->push_back(vertex);
-                mesh->Mesh_->Normals->push_back(normal);
+                meshNode->Mesh_->Vertices->push_back(vertex);
+                meshNode->Mesh_->Vertices->push_back(normal);
+                meshNode->Mesh_->Vertex->push_back(vertex);
+                meshNode->Mesh_->Normals->push_back(vertex);
+                meshNode->Mesh_->Normals->push_back(normal);
                 idx = i;
             }
 
-            mesh->Mesh_->Vertices = vertexBuffer;
-            mesh->Mesh_->BoundingBox = CreateRef<std::pair< glm::vec3, glm::vec3 >>(GetExtents(mesh->Mesh_->Vertex->data(), sizeof(glm::vec3), mesh->Mesh_->Vertex->size()));
+            *meshNode->Mesh_->BoundingBox = GetExtents(meshNode->Mesh_->Vertex->data(), sizeof(glm::vec3), meshNode->Mesh_->Vertex->size());
 
             auto entity = scene->Scene::CreateEntityWithGroupUUID(meshNode->Name, guid);
             entity.AddComponent<MeshComponent>(meshNode->Mesh_, meshNode->Name, path);

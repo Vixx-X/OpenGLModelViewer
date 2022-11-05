@@ -287,6 +287,7 @@ namespace GLMV {
             }
 
             glPolygonOffset(4*NOffset, 4*NOffset);
+
             // draw bounding box
             if (m_ShowBoundingBox)
                 Renderer::DrawCube(transform.GetTransform(), m_BoundingBoxColor);
