@@ -13,6 +13,7 @@ namespace GLMV {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
 
         s_TriangleShader = Shader::Create("assets/shaders/Mesh.glsl");
         s_DefaultShader = Shader::Create("assets/shaders/Default.glsl");
@@ -156,9 +157,9 @@ namespace GLMV {
     void Renderer::SetBackfaceCulling(bool backfaceculling)
     {
         if (backfaceculling)
-            glCullFace(GL_FRONT_AND_BACK);
+            glEnable(GL_CULL_FACE);
         else
-            glCullFace(GL_FRONT);
+            glDisable(GL_CULL_FACE);
     }
 
     void Renderer::SetClearColor(const glm::vec4& color)
